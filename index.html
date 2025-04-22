@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wordle Redux – Part 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- React + Babel CDN -->
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <style>
+    /* Styles for layout and tile coloring */
+    body {
+      font-family: sans-serif;
+      background: #f8f8f8;
+      text-align: center;
+      padding: 2rem;
+    }
+    .board {
+      display: grid;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .row {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .tile {
+      width: 3rem;
+      height: 3rem;
+      display: grid;
+      place-items: center;
+      border: 2px solid #ccc;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .correct {
+      background-color: green;
+      color: white;
+    }
+    .present {
+      background-color: gold;
+      color: black;
+    }
+    .absent {
+      background-color: lightgray;
+      color: black;
+    }
+    .keyboard {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .key-row {
+      display: flex;
+      gap: 0.3rem;
+    }
+    .key {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      background-color: #eee;
+      border: 1px solid #ccc;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    //correct answer for this wordle game
+    const ANSWER = "moody";
+    //hardcoded guesses to display
+    const GUESSES = ["might", "flood", "stray"];
+    const MAX_ROWS = 6; //wordle has 6 rows
+    const WORD_LENGTH = 5; //each word has 5 letters
+
+    //determines status of a letter in guess
+    //correct, letter in correct position
+    //present correct letter wrong position in word
+    //absent not in the word at all
+    function getTileStatus(letter, index, answer) {
+      if (letter === answer[index]) return "correct";
+      else if (answer.includes(letter)) return "present";
+      else return "absent";
+    }
+
+    //tile component displays one letter square with coloring
+    function Tile({ letter, status }) {
+      return <div className={`tile ${status}`}>{letter.toUpperCase()}</div>;
+    }
+
+    //row component displays one row of 5 tile components
+    function Row({ word, answer }) {
+      const letters = word.padEnd(WORD_LENGTH).split(""); //pad shorter words so empty strings fill the row
+      return (
+        <div className="row">
+          {letters.map((char, idx) => {
+            const status = word.length === WORD_LENGTH
+              ? getTileStatus(char, idx, answer)
+              : "";
+            return <Tile key={idx} letter={char} status={status} />;
+          })}
+        </div>
+      );
+    }
+
+    //board component displays 6 total rows some may be empty
+    function Board({ guesses, answer }) {
+      const rows = [...guesses];
+      while (rows.length < MAX_ROWS) rows.push(""); //add empty strings for unguessed rows to make 6 total
+
+      return (
+        <div className="board">
+          {rows.map((word, idx) => (
+            <Row key={idx} word={word} answer={answer} />
+          ))}
+        </div>
+      );
+    }
+    
+    //keyboard component static on the screen
+    function Keyboard() {
+      const layout = ["qwertyuiop", "asdfghjkl", "zxcvbnm"];
+      return (
+        <div className="keyboard">
+          {layout.map((row, i) => (
+            <div className="key-row" key={i}>
+              {row.split("").map((letter) => (
+                <button className="key" key={letter}>
+                  {letter.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    //App component top level component combining board and keyboard
+    function App() {
+      return (
+        <div className="game">
+          <h1>Wordle Redux</h1>
+          <Board guesses={GUESSES} answer={ANSWER} />
+          <Keyboard />
+        </div>
+      );
+    }
+
+    //mount on the app component to the DOM
+    ReactDOM.render(<App />, document.getElementById("root"));
+  </script>
+</body>
+</html>
